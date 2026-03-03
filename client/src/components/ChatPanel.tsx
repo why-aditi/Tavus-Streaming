@@ -7,9 +7,10 @@ interface Message {
 
 interface ChatPanelProps {
   onReply?: (text: string) => void;
+  sessionActive?: boolean;
 }
 
-export default function ChatPanel({ onReply }: ChatPanelProps) {
+export default function ChatPanel({ onReply, sessionActive = true }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,7 @@ export default function ChatPanel({ onReply }: ChatPanelProps) {
   const handleSend = async (e: FormEvent) => {
     e.preventDefault();
     const text = input.trim();
-    if (!text || loading) return;
+    if (!text || loading || !sessionActive) return;
 
     const userMessage: Message = { role: "user", content: text };
     const updatedMessages = [...messages, userMessage];
@@ -103,7 +104,12 @@ export default function ChatPanel({ onReply }: ChatPanelProps) {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4">
-        {messages.length === 0 && !streamingText && (
+        {messages.length === 0 && !streamingText && !sessionActive && (
+          <div className="m-auto text-center text-zinc-500">
+            <p>Start a session to begin chatting.</p>
+          </div>
+        )}
+        {messages.length === 0 && !streamingText && sessionActive && (
           <div className="m-auto text-center text-zinc-500">
             <p>Type a message to start the conversation.</p>
             <p className="text-sm mt-1 text-zinc-600">
@@ -191,13 +197,13 @@ export default function ChatPanel({ onReply }: ChatPanelProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type your message..."
-          disabled={loading}
+          disabled={loading || !sessionActive}
           autoFocus
-          className="flex-1 px-3.5 py-2.5 rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-100 text-[0.95rem] outline-none transition-colors placeholder:text-zinc-600 focus:border-violet-600"
+          className="flex-1 px-3.5 py-2.5 rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-100 text-[0.95rem] outline-none transition-colors placeholder:text-zinc-600 focus:border-violet-600 disabled:opacity-60"
         />
         <button
           type="submit"
-          disabled={loading || !input.trim()}
+          disabled={loading || !input.trim() || !sessionActive}
           className="px-5 py-2.5 rounded-lg bg-violet-600 text-white font-semibold text-[0.95rem] cursor-pointer transition-colors hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Send
